@@ -108,6 +108,7 @@ multioptimFit <- function(time_data, mass_data, model, iters = 200, upper = NULL
         # always start near lower bound--empirically works better
         fit[[i]] <- tryCatch(stats::optim(starter, obj_func, ind = time_data, dep = mass_data, 
             curve = model, method = "L-BFGS-B", lower = lower_bounds, upper = upper_bounds, 
+            hessian = TRUE,
             ...), error = function(e) NULL)
     }
     successes <- unlist(sapply(fit, function(x) {
@@ -134,6 +135,20 @@ are.within.ten.percent.of <- function(x, y) {
 rnd.to.text <- function(x, digits = 4) {
     format(round(x, digits), scientific = F)
 }
+
+
+ssq_weibull <- function(par, t, M_obs) {
+  beta <- par[1]
+  alpha <- par[2]
+  M_pred <- exp(-(t / beta)^alpha)
+  sum((M_pred - M_obs)^2)
+}
+
+hess_weibull <- function(fit){
+  H <- numDeriv::hessian(func = ssq_weibull, x = fit$optimFit$par, t = fit$time, M_obs = fit$massS)
+  }
+  
+  
 
 
 #' Simulate and Check Model Fitting with Litter Data
